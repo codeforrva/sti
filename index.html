@@ -131,13 +131,55 @@ function point(res) {
         'marker-color': '#333',
         'marker-symbol': 'star'
       }
-    }).addTo(map);
-    nearest(marker);
+    });
+    nearestFunc(marker);
   } 
 }
 
-function nearest(m) {
-  console.log(m);
+// for (var key in validation_messages) {
+//    var obj = validation_messages[key];
+//    for (var prop in obj) {
+//       // important check that this is objects own property 
+//       // not from prototype prop inherited
+//       if(obj.hasOwnProperty(prop)){
+//         alert(prop + " = " + obj[prop]);
+//       }
+//    }
+// }
+
+function nearestFunc(m) {
+  var features = [];
+  for (key in stiLocations._layers) {
+    var obj = stiLocations._layers[key];
+    var feature = turf.point([obj._latlng.lng, obj._latlng.lat], {
+      "marker-color": "#6BC65F",
+      "title": "Too Far",
+      "marker-size": "small"
+    });
+    features.push(feature);
+  }
+  console.log(features);
+  var point = turf.point([m._geojson.geometry.coordinates[1], m._geojson.geometry.coordinates[0]], {
+    "marker-color": "#8E8E8E",
+    "title": "Determining Point",
+    "marker-symbol": "star",
+    "marker-size": "large"
+  });
+  console.log(point);
+
+  var nearest = turf.nearest(point, turf.featurecollection(features));
+
+  nearest.properties["marker-color"] = "#25561F";
+  nearest.properties["title"] = "Nearest Point";
+  nearest.properties["marker-size"] = "large";
+  nearest.properties["marker-symbol"] = "star-stroked";
+
+  var nearest_fc = turf.featurecollection([point, nearest]);
+
+  console.log("NEAREST", nearest);
+  console.log("NEAREST_FC", nearest_fc);
+
+  map.setView([nearest_fc.features[0].geometry.coordinates[0], nearest_fc.features[0].geometry.coordinates[1]]);
 }
 
 function geocode_null() {
