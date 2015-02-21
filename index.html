@@ -190,6 +190,33 @@ function polygon_null() {
   input.className = "error";
   neighborhood.className = "";
 }
+
+// Note that calling `.eachLayer` here depends on setting GeoJSON _directly_
+// above. If you're loading GeoJSON asynchronously, like from CSV or from a file,
+// you will need to do this within a `featureLayer.on('ready'` event.
+stiLocations.eachLayer(function(layer) {
+
+    // here you call `bindPopup` with a string of HTML you create - the feature
+    // properties declared above are available under `layer.feature.properties`
+    var content = '<h2>' + layer.feature.properties.Name + '<\/h2>' +
+        '<p><b>Address:</b> ' + layer.feature.properties.address;
+
+             if(layer.feature.properties.address_2 === ""){
+                content += '<br \/> <b>Phone Number:</b> ' + layer.feature.properties.Phone_Number + '<br \/>' + 
+                        '<b>Hours:</b> ' + layer.feature.properties.Appointments_Hours + '<br \/>' +
+                        '<b>Services:</b> ' + layer.feature.properties.Services_Offered + '<br \/>' + 
+                        '<b>Cost:</b> ' + layer.feature.properties.Payment + '<br \/>  </p>';
+                    }
+           else{
+                content += ', ' + layer.feature.properties.address_2 + '<br \/>' +
+                        '<b>Phone Number:</b> ' + layer.feature.properties.Phone_Number + '<br \/>' + 
+                        '<b>Hours:</b> ' + layer.feature.properties.Appointments_Hours + '<br \/>' +
+                        '<b>Services:</b> ' + layer.feature.properties.Services_Offered + '<br \/>' + 
+                        '<b>Cost:</b> ' + layer.feature.properties.Payment + '<br \/>  </p>';
+            }
+            
+    layer.bindPopup(content);
+    });
 </script>
 
 
