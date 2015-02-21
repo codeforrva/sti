@@ -194,16 +194,16 @@ stiLocations.eachLayer(function(layer) {
 
     // here you call `bindPopup` with a string of HTML you create - the feature
     // properties declared above are available under `layer.feature.properties`
-    var content = '<h2>' + layer.feature.properties.Name + '<\/h2>' +
-        '<p><b>Address:</b> ' + layer.feature.properties.address;
+    var content = '<h2>' + layer.feature.properties.Name + '<\/h2>' + //Fetches the name of the clinic
+        '<p><b>Address:</b> ' + layer.feature.properties.address;//Gives the first part of the address
 
-             if(layer.feature.properties.address_2 === ""){
-                content += '<br \/> <b>Phone Number:</b> ' + layer.feature.properties.Phone_Number + '<br \/>' + 
+             if(layer.feature.properties.address_2 === ""){//checks for a second part (Suite number, etc.)
+                content += '<br \/> <b>Phone Number:</b> ' + layer.feature.properties.Phone_Number + '<br \/>' + //Adds other data
                         '<b>Hours:</b> ' + layer.feature.properties.Appointments_Hours + '<br \/>' +
                         '<b>Services:</b> ' + layer.feature.properties.Services_Offered + '<br \/>' + 
                         '<b>Cost:</b> ' + layer.feature.properties.Payment + '<br \/>  </p>';
                     }
-           else{
+           else{//If there is a second part to address, appends here and then the rest
                 content += ', ' + layer.feature.properties.address_2 + '<br \/>' +
                         '<b>Phone Number:</b> ' + layer.feature.properties.Phone_Number + '<br \/>' + 
                         '<b>Hours:</b> ' + layer.feature.properties.Appointments_Hours + '<br \/>' +
@@ -211,7 +211,7 @@ stiLocations.eachLayer(function(layer) {
                         '<b>Cost:</b> ' + layer.feature.properties.Payment + '<br \/>  </p>';
             }
             
-    layer.bindPopup(content);
+    layer.bindPopup(content);//Puts the content var created above into the Popup
     });
 </script>
 
