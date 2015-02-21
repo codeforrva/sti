@@ -1,0 +1,157 @@
+<html lang="en">
+<head>
+  <title>STI</title>
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+  <script src='locations.js'></script>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+  <script src="turf.js" charset="utf-8"></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+  <link href='http://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'>
+  <style>
+  body {
+    padding:0;
+    margin:0;
+    font-family: 'Lato', sans-serif;
+    font-weight:300;
+  }
+  form {}
+  form input {
+    position:fixed;
+    top:0;
+    width:100%;
+    font-size:1.5em;
+    padding:10px;
+    background:rgba(255,255,255,0.8);
+    -webkit-transition: .3s;
+       -moz-transition: .3s;
+        -ms-transition: .3s;
+         -o-transition: .3s;
+            transition: .3s;
+    border:none;
+    font-family: 'Lato', sans-serif;
+    font-weight:300;
+  }
+  input:-webkit-autofill {
+    color: #fff !important;
+  }
+  form input:focus {
+    outline:none;
+    background:rgba(255,255,255,1);
+  }
+  form input.success {
+    color:#fff;
+    background:#4ca54c;
+  }
+  form input.error {
+    color:#fff;
+    background:#ff6666;
+  }
+  #map {
+    position:absolute;
+    height:100%;
+    width:100%;
+  }
+  #neighborhood {
+    position:absolute;
+    bottom:0;
+    left:-100%;
+    width:auto;
+    -webkit-transition: .3s;
+       -moz-transition: .3s;
+        -ms-transition: .3s;
+         -o-transition: .3s;
+            transition: .3s;
+    font-size:1.5em;
+    padding:10px;
+    background:#333;
+    color:#fff;
+    z-index: 10;
+  }
+  #neighborhood.show {
+    left:0;
+  }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <form id="address_form">
+    <input id="address_input" type="text" class="" placeholder="Enter an address..." autocomplete="off">
+  </form>
+  <div id="neighborhood" class="">Waka</div>
+
+
+<script>
+
+L.mapbox.accessToken = 'pk.eyJ1Ijoic3ZtYXR0aGV3cyIsImEiOiJVMUlUR0xrIn0.NweS_AttjswtN5wRuWCSNA';
+var map = L.mapbox.map('map', 'svmatthews.l7jici43');
+var stiLocations = L.geoJson(locations).addTo(map);
+map.zoomControl.removeFrom(map);
+var input = document.getElementById('address_input');
+var neighborhood = document.getElementById('neighborhood');
+
+$("input").keypress(function(event) {
+  if (event.which == 13) {
+    console.log('waka');
+    event.preventDefault();
+    geocode();
+  }
+});
+
+function geocode(e) {
+  var token = 'pk.eyJ1Ijoic3ZtYXR0aGV3cyIsImEiOiJGdjROaW1nIn0.y3CbgMHEkOCvC6EO6_9WqQ';
+  var query = input.value;
+  $.ajax({
+    url: 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places-permanent/' + query + '.json?access_token=' + token + '&callback=jsonloaded',
+    async: true,
+    dataType: "json",
+    success: point,
+    error: function(e) {
+      console.error(e);
+    }
+  });
+}
+
+function point(res) {
+  if (res.features == 0) geocode_null();
+  else {
+    console.log('[ Success! Below is the most relevant address: ]');
+    console.log(res.features[0]);
+    coords = res.features[0].geometry.coordinates;
+    map.setView([coords[1], coords[0]], 15);
+    var marker = L.mapbox.featureLayer({
+      type: 'Feature',
+      geometry: {
+        type: "Point",
+        coordinates: [coords[0], coords[1]]
+      },
+      properties: {
+        'marker-size': 'large',
+        'marker-color': '#333',
+        'marker-symbol': 'star'
+      }
+    }).addTo(map);
+    nearest(marker);
+  } 
+}
+
+function nearest(m) {
+  console.log(m);
+}
+
+function geocode_null() {
+  console.log('[ Sorry, there we cannot find that address. ]');
+}
+function polygon_null() {
+  console.log('[ This point does not exist within the polygon areas. ]');
+  input.className = "error";
+  neighborhood.className = "";
+}
+</script>
+
+
+
+
+</body>
+</html>
