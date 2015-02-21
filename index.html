@@ -1,6 +1,7 @@
 <html lang="en">
 <head>
   <title>STI</title>
+  <meta name="viewport" content="width=device-width">
   <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
   <script src='locations.js'></script>
@@ -86,7 +87,7 @@
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic3ZtYXR0aGV3cyIsImEiOiJVMUlUR0xrIn0.NweS_AttjswtN5wRuWCSNA';
 var map = L.mapbox.map('map', 'svmatthews.l7jici43');
-var stiLocations = L.geoJson(locations).addTo(map);
+var stiLocations = L.mapbox.featureLayer(locations);
 map.zoomControl.removeFrom(map);
 var input = document.getElementById('address_input');
 var neighborhood = document.getElementById('neighborhood');
@@ -119,7 +120,7 @@ function point(res) {
     console.log('[ Success! Below is the most relevant address: ]');
     console.log(res.features[0]);
     coords = res.features[0].geometry.coordinates;
-    map.setView([coords[1], coords[0]], 15);
+    // map.setView([coords[1], coords[0]], 15);
     var marker = L.mapbox.featureLayer({
       type: 'Feature',
       geometry: {
@@ -136,50 +137,45 @@ function point(res) {
   } 
 }
 
-// for (var key in validation_messages) {
-//    var obj = validation_messages[key];
-//    for (var prop in obj) {
-//       // important check that this is objects own property 
-//       // not from prototype prop inherited
-//       if(obj.hasOwnProperty(prop)){
-//         alert(prop + " = " + obj[prop]);
-//       }
-//    }
-// }
-
 function nearestFunc(m) {
+
   var features = [];
   for (key in stiLocations._layers) {
     var obj = stiLocations._layers[key];
     var feature = turf.point([obj._latlng.lng, obj._latlng.lat], {
-      "marker-color": "#6BC65F",
+      "marker-color": "#3D9970",
       "title": "Too Far",
       "marker-size": "small"
     });
     features.push(feature);
   }
   console.log(features);
-  var point = turf.point([m._geojson.geometry.coordinates[1], m._geojson.geometry.coordinates[0]], {
+  var point = turf.point([m._geojson.geometry.coordinates[0], m._geojson.geometry.coordinates[1]], {
     "marker-color": "#8E8E8E",
-    "title": "Determining Point",
-    "marker-symbol": "star",
+    "title": "Starting Point",
+    "marker-symbol": "building",
     "marker-size": "large"
   });
-  console.log(point);
+
+
+
+  var fc = turf.featurecollection(features);
+  L.mapbox.featureLayer().setGeoJSON(fc).addTo(map);
+
 
   var nearest = turf.nearest(point, turf.featurecollection(features));
 
-  nearest.properties["marker-color"] = "#25561F";
+  nearest.properties["marker-color"] = "#2ECC40";
   nearest.properties["title"] = "Nearest Point";
   nearest.properties["marker-size"] = "large";
-  nearest.properties["marker-symbol"] = "star-stroked";
-
-  var nearest_fc = turf.featurecollection([point, nearest]);
+  nearest.properties["marker-symbol"] = "hospital";
 
   console.log("NEAREST", nearest);
-  console.log("NEAREST_FC", nearest_fc);
 
-  map.setView([nearest_fc.features[0].geometry.coordinates[0], nearest_fc.features[0].geometry.coordinates[1]]);
+  var nearest_fc = turf.featurecollection([point, nearest]);
+  var nearest_fc_fl = L.mapbox.featureLayer().setGeoJSON(nearest_fc).addTo(map);
+  
+  map.fitBounds(nearest_fc_fl.getBounds());
 }
 
 function geocode_null() {
