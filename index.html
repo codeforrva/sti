@@ -87,7 +87,8 @@
 
 L.mapbox.accessToken = 'pk.eyJ1Ijoic3ZtYXR0aGV3cyIsImEiOiJVMUlUR0xrIn0.NweS_AttjswtN5wRuWCSNA';
 var map = L.mapbox.map('map', 'svmatthews.l7jici43');
-var stiLocations = L.mapbox.featureLayer(locations);
+var stiLocations = L.mapbox.featureLayer(locations).addTo(map);
+map.fitBounds(stiLocations.getBounds());
 map.zoomControl.removeFrom(map);
 var input = document.getElementById('address_input');
 var neighborhood = document.getElementById('neighborhood');
@@ -119,63 +120,36 @@ function point(res) {
   else {
     console.log('[ Success! Below is the most relevant address: ]');
     console.log(res.features[0]);
-    coords = res.features[0].geometry.coordinates;
-    // map.setView([coords[1], coords[0]], 15);
-    var marker = L.mapbox.featureLayer({
-      type: 'Feature',
-      geometry: {
-        type: "Point",
-        coordinates: [coords[0], coords[1]]
-      },
-      properties: {
-        'marker-size': 'large',
-        'marker-color': '#333',
-        'marker-symbol': 'star'
-      }
-    });
-    nearestFunc(marker);
+    nearestFunc(res.features[0].geometry.coordinates);
   } 
 }
 
-function nearestFunc(m) {
+function nearestFunc(coords) {
 
-  var features = [];
-  for (key in stiLocations._layers) {
-    var obj = stiLocations._layers[key];
-    var feature = turf.point([obj._latlng.lng, obj._latlng.lat], {
-      "marker-color": "#3D9970",
-      "title": "Too Far",
-      "marker-size": "small"
-    });
-    features.push(feature);
-  }
-  console.log(features);
-  var point = turf.point([m._geojson.geometry.coordinates[0], m._geojson.geometry.coordinates[1]], {
-    "marker-color": "#8E8E8E",
+  // create point geojson with turf.point() 
+  var point = turf.point([coords[0], coords[1]], {
+    "marker-color": "#0074D9",
     "title": "Starting Point",
-    "marker-symbol": "building",
-    "marker-size": "large"
+    "marker-symbol": "building"
   });
 
+  // create turf feature collection with locations geojson defined in locations.js
+  var fc = turf.featurecollection(locations.features);
 
+  // create nearest object to update properties
+  var nearest = turf.nearest(point, turf.featurecollection(locations.features));
 
-  var fc = turf.featurecollection(features);
-  L.mapbox.featureLayer().setGeoJSON(fc).addTo(map);
-
-
-  var nearest = turf.nearest(point, turf.featurecollection(features));
-
+  // update properties of nearest location
   nearest.properties["marker-color"] = "#2ECC40";
-  nearest.properties["title"] = "Nearest Point";
-  nearest.properties["marker-size"] = "large";
   nearest.properties["marker-symbol"] = "hospital";
 
   console.log("NEAREST", nearest);
 
-  var nearest_fc = turf.featurecollection([point, nearest]);
-  var nearest_fc_fl = L.mapbox.featureLayer().setGeoJSON(nearest_fc).addTo(map);
+  // add searched point to map
+  L.mapbox.featureLayer().setGeoJSON(point).addTo(map);
+  // update map with newly styled location
+  stiLocations.setGeoJSON(locations.features);
   
-  map.fitBounds(nearest_fc_fl.getBounds());
 }
 
 function geocode_null() {
