@@ -9,6 +9,7 @@
   <script src="turf.js" charset="utf-8"></script>
   <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
   <link href='http://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'>
+  <link href='static/css/font-awesome.min.css' rel='stylesheet' />
   <style>
   body {
     padding:0;
@@ -40,37 +41,53 @@
     outline:none;
     background:rgba(255,255,255,1);
   }
-  form input.success {
-    color:#fff;
-    background:#4ca54c;
-  }
-  form input.error {
-    color:#fff;
-    background:#ff6666;
-  }
   #map {
     position:absolute;
     height:100%;
     width:100%;
   }
-  #neighborhood {
-    position:absolute;
-    bottom:0;
-    left:-100%;
-    width:auto;
-    -webkit-transition: .3s;
-       -moz-transition: .3s;
-        -ms-transition: .3s;
-         -o-transition: .3s;
-            transition: .3s;
-    font-size:1.5em;
-    padding:10px;
-    background:#333;
-    color:#fff;
-    z-index: 10;
+  #geolocate {
+    position:fixed;
+    bottom:10px;
+    left:10px;
+    font-size:1.6em;
+    background:transparent;
+    border:none;
   }
-  #neighborhood.show {
-    left:0;
+  #geolocate:focus {
+    outline:none;
+  }
+  #geolocate .fa-refresh,
+  #geolocate.working .fa-crosshairs {
+    display:none;
+  }
+  #geolocate.working .fa-refresh {
+    display:block;
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 1s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 1s;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+    -o-transition: rotate(3600deg);
+  }
+  @-moz-keyframes spin {
+      from { -moz-transform: rotate(0deg); }
+      to { -moz-transform: rotate(360deg); }
+  }
+  @-webkit-keyframes spin {
+      from { -webkit-transform: rotate(0deg); }
+      to { -webkit-transform: rotate(360deg); }
+  }
+  @keyframes spin {
+      from {transform:rotate(0deg);}
+      to {transform:rotate(360deg);}
   }
   </style>
 </head>
@@ -80,7 +97,12 @@
   <form id="address_form">
     <input id="address_input" type="text" class="" placeholder="Enter an address..." autocomplete="off">
   </form>
-  <div id="neighborhood" class="">Waka</div>
+
+  <button id="geolocate" onclick="geolocate()">
+    <i class="fa fa-crosshairs"></i>
+    <i class="fa fa-refresh"></i>
+  </button>
+
 
 
 <script>
@@ -91,11 +113,13 @@ var stiLocations = L.mapbox.featureLayer(locations).addTo(map);
 map.fitBounds(stiLocations.getBounds());
 map.zoomControl.removeFrom(map);
 var input = document.getElementById('address_input');
-var neighborhood = document.getElementById('neighborhood');
+var geolocateButton = document.getElementById('geolocate');
 
+// checks when a key is pressed in the input field
+// if the key is 13 (enter, return) then it fires
+// the geocode() function
 $("input").keypress(function(event) {
   if (event.which == 13) {
-    console.log('waka');
     event.preventDefault();
     geocode();
   }
@@ -115,18 +139,33 @@ function geocode(e) {
   });
 }
 
+function geolocate() {
+  console.log('[ GEOLOCATING USER ]');
+  if (navigator.geolocation) {
+    geolocateButton.className = 'working';
+    navigator.geolocation.getCurrentPosition(function(position){
+      geolocateButton.className = '';
+      console.log(position);
+      nearestFunc([position.coords.longitude, position.coords.latitude]);
+    });    
+  } else {
+    console.error("[ ERROR: Geolocation is not supported by this browser. ]");
+  }
+}
+
+
 function point(res) {
   if (res.features == 0) geocode_null();
   else {
-    console.log('[ Success! Below is the most relevant address: ]');
-    console.log(res.features[0]);
     nearestFunc(res.features[0].geometry.coordinates);
   } 
 }
 
+// nearestFunc accepts a [lat,lng] array to be used
+// to search for the nearest STI center
 function nearestFunc(coords) {
 
-  // create point geojson with turf.point() 
+  // create point geojson with turf.point()
   var point = turf.point([coords[0], coords[1]], {
     "marker-color": "#0074D9",
     "title": "Starting Point",
@@ -143,7 +182,7 @@ function nearestFunc(coords) {
   nearest.properties["marker-color"] = "#2ECC40";
   nearest.properties["marker-symbol"] = "hospital";
 
-  console.log("NEAREST", nearest);
+  console.log("[ NEAREST ]:", nearest);
 
   // add searched point to map
   L.mapbox.featureLayer().setGeoJSON(point).addTo(map);
@@ -153,12 +192,10 @@ function nearestFunc(coords) {
 }
 
 function geocode_null() {
-  console.log('[ Sorry, there we cannot find that address. ]');
+  console.log('[ ERROR: Sorry, there we cannot find that address. ]');
 }
 function polygon_null() {
-  console.log('[ This point does not exist within the polygon areas. ]');
-  input.className = "error";
-  neighborhood.className = "";
+  console.log('[ ERROR: This point does not exist within the polygon areas. ]');
 }
 
 // Note that calling `.eachLayer` here depends on setting GeoJSON _directly_
