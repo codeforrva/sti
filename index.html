@@ -126,10 +126,10 @@ $("input").keypress(function(event) {
 });
 
 function geocode(e) {
-  var token = 'pk.eyJ1Ijoic3ZtYXR0aGV3cyIsImEiOiJGdjROaW1nIn0.y3CbgMHEkOCvC6EO6_9WqQ';
+  var token = 'pk.eyJ1IjoiY29kZWZvcnJ2YSIsImEiOiJuUG5EQ0FzIn0.0IA_livuMSbj19KvV3qd0w';
   var query = input.value;
   $.ajax({
-    url: 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places-permanent/' + query + '.json?access_token=' + token + '&callback=jsonloaded',
+    url: 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places/' + query + '.json?access_token=' + token + '&callback=jsonloaded',
     async: true,
     dataType: "json",
     success: point,
