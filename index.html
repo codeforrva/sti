@@ -114,7 +114,21 @@ map.fitBounds(stiLocations.getBounds());
 map.zoomControl.removeFrom(map);
 var input = document.getElementById('address_input');
 var geolocateButton = document.getElementById('geolocate');
+var locationStore;
+  $.ajax({
+    url: 'https://brigades.opendatanetwork.com/resource/rj82-n357.json',
+    async: true,
+    dataType: "json",
+    success: setLocations,
+    error: function(e) {
+      console.error(e);
+    }
+  });
 
+  function setLocations (data) {
+      console.log('location store initialized');
+      locationStore = data;
+  }
 // checks when a key is pressed in the input field
 // if the key is 13 (enter, return) then it fires
 // the geocode() function
